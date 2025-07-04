@@ -1,0 +1,18 @@
+# Environment
+.env
+venv/
+env/
+
+# Database
+*.db
+*.sqlite
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Personal data
+cv/
+personal_data/
