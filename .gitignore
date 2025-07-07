@@ -6,6 +6,7 @@ env/
 # Database
 *.db
 *.sqlite
+job_search.db
 
 # Python
 __pycache__/
