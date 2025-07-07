@@ -1,103 +1,212 @@
-import Image from "next/image";
+"use client";
+
+import { useState } from "react";
+import toast from "react-hot-toast";
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [cvFile, setCvFile] = useState<File | null>(null);
+  const [jobTitle, setJobTitle] = useState("");
+  const [location, setLocation] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [matches, setMatches] = useState<any[]>([]);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+  // Clear uploaded file handler
+  const clearFile = () => setCvFile(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!cvFile || !jobTitle) {
+      toast.error("Please upload a CV and enter a job title.");
+      return;
+    }
+
+    const jobQuery = location ? `${jobTitle} ${location}` : jobTitle;
+
+    const formData = new FormData();
+    formData.append("cv", cvFile);
+    formData.append("job_query", jobQuery);
+
+    setLoading(true);
+    setMatches([]);
+
+    try {
+      const res = await fetch("http://localhost:8000/analyze", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Something went wrong");
+      }
+
+      setMatches(data.matches || []);
+    } catch (err: any) {
+      toast.error(err.message || "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <main className="min-h-screen bg-gradient-to-tr from-teal-300 via-amber-200 to-indigo-600 flex flex-col items-center py-12 px-4 sm:px-6 lg:px-8 font-sans">
+      <h1 className="text-5xl font-extrabold mb-12 text-white drop-shadow-lg tracking-wide select-none">
+        Job Search AI
+      </h1>
+
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white bg-opacity-90 backdrop-blur-md rounded-3xl shadow-xl p-10 max-w-3xl w-full space-y-8"
+      >
+        {/* File upload with clear */}
+        <div>
+          <label
+            htmlFor="cv-upload"
+            className="flex items-center justify-center cursor-pointer border-2 border-dashed border-teal-500 rounded-2xl py-6 px-4 hover:bg-teal-50 transition-colors text-teal-700 font-semibold text-lg select-none"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-7 w-7 mr-3"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
+
+            {cvFile ? (
+              <>
+                <span className="text-teal-800">{cvFile.name}</span>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    clearFile();
+                  }}
+                  className="ml-4 bg-red-400 text-white rounded px-3 py-1 hover:bg-red-500 transition"
+                >
+                  Clear
+                </button>
+              </>
+            ) : (
+              "Click or drag your CV (PDF)"
+            )}
+          </label>
+          <input
+            id="cv-upload"
+            type="file"
+            accept=".pdf"
+            onChange={(e) => setCvFile(e.target.files?.[0] || null)}
+            className="hidden"
+          />
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+
+        {/* Job title and location inputs */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label
+              htmlFor="job-title"
+              className="block text-gray-700 font-semibold mb-2"
+            >
+              Job Title
+            </label>
+            <input
+              id="job-title"
+              type="text"
+              value={jobTitle}
+              onChange={(e) => setJobTitle(e.target.value)}
+              placeholder="Data Scientist"
+              className="w-full rounded-xl border border-teal-400 px-4 py-3 text-lg placeholder-teal-300 focus:outline-none focus:ring-4 focus:ring-teal-300 transition-shadow shadow-md"
+            />
+          </div>
+
+          <div>
+            <label
+              htmlFor="location"
+              className="block text-gray-700 font-semibold mb-2"
+            >
+              Location (optional)
+            </label>
+            <input
+              id="location"
+              type="text"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              placeholder="Remote or New York"
+              className="w-full rounded-xl border border-teal-400 px-4 py-3 text-lg placeholder-teal-300 focus:outline-none focus:ring-4 focus:ring-teal-300 transition-shadow shadow-md"
+            />
+          </div>
+        </div>
+
+        {/* Submit button */}
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full bg-teal-600 text-white py-4 rounded-xl font-bold text-xl shadow-lg hover:bg-teal-700 active:bg-teal-800 transition-colors flex justify-center items-center disabled:opacity-60 disabled:cursor-not-allowed"
         >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+          {loading && (
+            <svg
+              className="animate-spin h-6 w-6 mr-3 text-white"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              ></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+              ></path>
+            </svg>
+          )}
+          {loading ? "Searching..." : "Find Jobs"}
+        </button>
+      </form>
+
+      {matches.length > 0 && (
+        <section className="mt-12 max-w-3xl w-full">
+          <h2 className="text-3xl font-extrabold text-teal-800 mb-6 text-center tracking-tight">
+            Matched Jobs
+          </h2>
+          <ul className="space-y-8">
+            {matches.map((job, idx) => (
+              <li
+                key={idx}
+                className="p-6 rounded-2xl bg-gradient-to-br from-teal-50 to-amber-50 shadow-xl hover:shadow-2xl transition-shadow cursor-pointer"
+              >
+                <h3 className="text-2xl font-bold text-indigo-700">
+                  {job.title}
+                </h3>
+                <p className="font-semibold text-amber-600">{job.company}</p>
+                <p className="mt-3 text-indigo-900">{job.description}</p>
+                {job.link && (
+                  <a
+                    href={job.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-4 inline-block text-indigo-700 font-semibold underline hover:text-indigo-900"
+                  >
+                    View Job
+                  </a>
+                )}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+    </main>
   );
 }
