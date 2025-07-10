@@ -211,14 +211,20 @@ class CVAnalyzer:
             result = self.qa_chain.invoke(query)
             return self._extract_score(result)
         except Exception as e:
-            print(f"Error analyzing job match: {e}")
             return 0.0
 
     def _extract_score(self, result: str) -> float:
+        if isinstance(result, dict):
+            result = result.get("result", "")
+
+        if not isinstance(result, str):
+            return 0.0
+
         match = re.search(r'(\d+(?:\.\d+)?)', result)
         if match:
             return float(match.group(1))
         return 0.0
+
 
 class CoverLetterGenerator:
     def __init__(self):
