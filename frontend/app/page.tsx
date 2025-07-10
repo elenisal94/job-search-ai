@@ -192,9 +192,16 @@ export default function Home() {
                 </h3>
                 <p className="font-semibold text-amber-600">{job.company}</p>
                 <p className="mt-3 text-indigo-900">{job.description}</p>
-                {job.link && (
+                <p className="mt-2 text-teal-800 font-medium">
+                  Match Score:{" "}
+                  {typeof job.match_score === "number" &&
+                  !isNaN(job.match_score)
+                    ? `${job.match_score.toFixed(0)} / 100`
+                    : "Unavailable"}
+                </p>
+                {job.url && (
                   <a
-                    href={job.link}
+                    href={job.url}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="mt-4 inline-block text-indigo-700 font-semibold underline hover:text-indigo-900"
