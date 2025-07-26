@@ -1,4 +1,4 @@
-🧠 Job Search AI Assistant
+🧠 Job Search AI Assistant (in progress)
 An intelligent assistant that automates and streamlines your job applications using AI.
 
 ✨ Features
