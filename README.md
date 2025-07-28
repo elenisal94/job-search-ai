@@ -23,7 +23,7 @@ In an era of AI-generated resumes, automated filters, and thousands of applicant
 ### 📝 AI-Powered Cover Letter Generation
 - Uses LangChain + OpenAI to craft tailored, high-quality cover letters.
 - Analyzes each job description alongside your uploaded CV.
-- Designed to be role-specific and personalized, not generic templates.
+- Designed to be role-specific and personalised, not generic templates.
 
 ### 🧾 RAG-Powered CV Matching
 - Upload your CV and paste job descriptions.
